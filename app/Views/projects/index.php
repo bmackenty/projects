@@ -44,15 +44,19 @@
                     ?>
                     <div class="d-flex flex-column align-items-start">
                         <span class="badge bg-secondary mb-2"><?= $taskCount ?> tasks</span>
-                        <a href="<?= $base_url ?>/projects/<?= $project['id'] ?>/tasks/create" 
-                           class="btn btn-sm btn-outline-primary">Add Task</a>
+                        
                     </div>
                 </td>
-                <td><?= htmlspecialchars($project['last_updated']) ?></td>
+                <td>
+                <?= htmlspecialchars($project['last_updated']) ?>
+                <?= TimeHelper::getRelativeTime($project['last_updated']) ?>
+                </td>
                 <?php if($_SESSION['user']['role'] === 'admin'): ?>
                     <td>
                         <a href="<?= $base_url ?>/projects/edit/<?= $project['id'] ?>" 
                            class="btn btn-sm btn-primary">Edit</a>
+                        <a href="<?= $base_url ?>/projects/<?= $project['id'] ?>/tasks/create" 
+                           class="btn btn-sm btn-outline-primary">Add Task</a>
                     </td>
                 <?php endif; ?>
             </tr>

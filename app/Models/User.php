@@ -46,4 +46,28 @@ class User {
         $stmt = $this->pdo->prepare("DELETE FROM remember_tokens WHERE token = ?");
         return $stmt->execute([$token]);
     }
+
+    public function findById($id) {
+        $stmt = $this->pdo->prepare("SELECT id, name, email, role FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updateProfile($id, $name, $password = null) {
+        if ($password) {
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $stmt = $this->pdo->prepare("UPDATE users SET name = ?, password = ? WHERE id = ?");
+            return $stmt->execute([$name, $hashed_password, $id]);
+        } else {
+            $stmt = $this->pdo->prepare("UPDATE users SET name = ? WHERE id = ?");
+            return $stmt->execute([$name, $id]);
+        }
+    }
+
+    public function verifyPassword($id, $password) {
+        $stmt = $this->pdo->prepare("SELECT password FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $user && password_verify($password, $user['password']);
+    }
 }

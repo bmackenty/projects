@@ -110,6 +110,18 @@ switch ($request) {
         (new TaskController())->renameUpload($upload_id);
         break;
 
+    case '/profile':
+        require __DIR__ . '/../app/Controllers/ProfileController.php';
+        (new ProfileController())->index();
+        break;
+
+    case '/profile/update':
+        if ($request_method === 'POST') {
+            require __DIR__ . '/../app/Controllers/ProfileController.php';
+            (new ProfileController())->update();
+        }
+        break;
+
     default:
         require __DIR__ . '/../app/Views/404.php';
         break;

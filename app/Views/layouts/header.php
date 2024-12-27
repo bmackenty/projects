@@ -68,11 +68,14 @@ error_log("Current working directory: " . getcwd());
                 </ul>
                 <ul class="navbar-nav">
                     <?php if(isset($_SESSION['user'])): ?>
-                        <li class="nav-item">
-                            <span class="nav-link"><?= htmlspecialchars($_SESSION['user']['email']) ?></span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="<?= $base_url ?>/logout">Logout</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <?= htmlspecialchars($_SESSION['user']['email']) ?>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="<?= $base_url ?>/profile">Profile</a></li>
+                                <li><a class="dropdown-item" href="<?= $base_url ?>/logout">Logout</a></li>
+                            </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
