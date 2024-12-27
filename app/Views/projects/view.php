@@ -47,10 +47,21 @@
             <tbody>
                 <?php
                 if (!empty($tasks)):
-                    foreach ($tasks as $task):
+                    // First, get all parent tasks (tasks with no parent)
+                    $parentTasks = array_filter($tasks, function($task) {
+                        return empty($task['parent_task_id']);
+                    });
+
+                    // Helper function to render task and its children recursively
+                    function renderTaskRow($task, $tasks, $level = 0, $uploadModel, $base_url) {
+                        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
                         ?>
                         <tr>
                             <td>
+                                <?= $indent ?>
+                                <?php if ($level > 0): ?>
+                                    <i class="bi bi-arrow-return-right"></i>
+                                <?php endif; ?>
                                 <a href="<?= $base_url ?>/tasks/view/<?= $task['id'] ?>" class="text-decoration-none">
                                     <?= htmlspecialchars($task['name']) ?>
                                     <?php if ($uploadModel->hasUploads($task['id'])): ?>
@@ -58,33 +69,38 @@
                                     <?php endif; ?>
                                 </a>
                             </td>
-                            <td class="text-truncate" style="max-width: 200px;">
-                                <?= $task['description'] ?>
-                            </td>
+                            <td><?= htmlspecialchars(substr($task['description'], 0, 100)) ?>...</td>
                             <td>
                                 <span class="badge bg-<?= $task['status'] === 'completed' ? 'success' :
                                     ($task['status'] === 'in_progress' ? 'warning' : 'secondary') ?>">
-                                    <?= htmlspecialchars(str_replace('_', ' ', ucfirst($task['status']))) ?>
+                                    <?= ucfirst(str_replace('_', ' ', $task['status'])) ?>
                                 </span>
                             </td>
-                            <td><?= htmlspecialchars($task['time']) ?> hours</td>
-                            <td><?= htmlspecialchars($task['last_updated']) ?></td>
+                            <td><?= $task['time'] ?> hours</td>
+                            <td><?= $task['last_updated'] ?></td>
                             <?php if ($_SESSION['user']['role'] === 'admin'): ?>
                                 <td>
-                                    <a href="<?= $base_url ?>/tasks/edit/<?= $task['id'] ?>" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </a>
+                                    <a href="<?= $base_url ?>/tasks/edit/<?= $task['id'] ?>" 
+                                       class="btn btn-sm btn-outline-primary">Edit</a>
                                 </td>
                             <?php endif; ?>
                         </tr>
-                    <?php
+                        <?php
+                        // Find and render child tasks
+                        $childTasks = array_filter($tasks, function($t) use ($task) {
+                            return $t['parent_task_id'] == $task['id'];
+                        });
+                        foreach ($childTasks as $childTask) {
+                            renderTaskRow($childTask, $tasks, $level + 1, $uploadModel, $base_url);
+                        }
+                    }
+
+                    // Render all parent tasks and their children
+                    foreach ($parentTasks as $parentTask):
+                        renderTaskRow($parentTask, $tasks, 0, $uploadModel, $base_url);
                     endforeach;
-                else:
-                    ?>
-                    <tr>
-                        <td colspan="6" class="text-center">No tasks found</td>
-                    </tr>
-                <?php endif; ?>
+                endif;
+                ?>
             </tbody>
         </table>
     </div>

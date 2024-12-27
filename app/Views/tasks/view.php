@@ -30,6 +30,56 @@
     <div class="row">
         <!-- Main Content Column -->
         <div class="col-lg-8">
+            <!-- Task Hierarchy -->
+            <?php if (!empty($taskHierarchy)): ?>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Task Hierarchy</h5>
+                    </div>
+                    <div class="card-body">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <?php foreach ($taskHierarchy as $index => $hierarchyTask): ?>
+                                    <?php if ($index === array_key_last($taskHierarchy)): ?>
+                                        <li class="breadcrumb-item active"><?= htmlspecialchars($hierarchyTask['name']) ?></li>
+                                    <?php else: ?>
+                                        <li class="breadcrumb-item">
+                                            <a href="<?= $base_url ?>/tasks/view/<?= $hierarchyTask['id'] ?>">
+                                                <?= htmlspecialchars($hierarchyTask['name']) ?>
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Child Tasks -->
+            <?php if (!empty($childTasks)): ?>
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Subtasks</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($childTasks as $childTask): ?>
+                            <a href="<?= $base_url ?>/tasks/view/<?= $childTask['id'] ?>" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1"><?= htmlspecialchars($childTask['name']) ?></h6>
+                                    <span class="badge bg-<?= $childTask['status'] === 'completed' ? 'success' :
+                                        ($childTask['status'] === 'in_progress' ? 'warning' : 'secondary') ?>">
+                                        <?= ucfirst(str_replace('_', ' ', $childTask['status'])) ?>
+                                    </span>
+                                </div>
+                                <small class="text-muted">Last updated: <?= $childTask['last_updated'] ?></small>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <!-- Task Description Card -->
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">

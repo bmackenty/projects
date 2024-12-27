@@ -27,6 +27,22 @@
                                     rows="10" required><?= htmlspecialchars($task['description']) ?></textarea>
                         </div>
 
+                        <!-- Add parent task selection -->
+                        <div class="mb-3">
+                            <label for="parent_task_id" class="form-label">Parent Task (Optional)</label>
+                            <select class="form-control" id="parent_task_id" name="parent_task_id">
+                                <option value="">No Parent Task</option>
+                                <?php foreach ($projectTasks as $projectTask): ?>
+                                    <?php if ($projectTask['id'] !== $task['id']): ?>
+                                        <option value="<?= $projectTask['id'] ?>" 
+                                            <?= ($task['parent_task_id'] == $projectTask['id']) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($projectTask['name']) ?>
+                                        </option>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>
                             <select class="form-control" id="status" name="status" required>

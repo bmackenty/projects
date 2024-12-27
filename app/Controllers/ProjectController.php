@@ -11,6 +11,7 @@ class ProjectController {
     private $projectModel;
     private $taskModel;  
     private $commentModel;
+    private $uploadModel;
     private $logger;
 
     public function __construct() {
@@ -18,6 +19,7 @@ class ProjectController {
         $this->projectModel = new Project($pdo);
         $this->taskModel = new Task($pdo); 
         $this->commentModel = new Comment($pdo);
+        $this->uploadModel = new Upload($pdo);
         $this->logger = new Logger();
     }
 
@@ -61,29 +63,17 @@ class ProjectController {
             $project = $this->projectModel->getProject($id);
             
             if (!$project) {
-                $this->logger->warning('Invalid project access attempt', [
-                    'project_id' => $id,
-                    'user' => isset($_SESSION['user']) ? $_SESSION['user']['email'] : 'guest'
-                ]);
-                
                 require_once __DIR__ . '/../Views/errors/project_not_found.php';
                 return;
             }
-            
+
+            // Get all tasks for this project
             $tasks = $this->taskModel->getAllTasksByProjectId($id);
-            $commentModel = $this->commentModel;
-            
-            // Make Upload model available to the view
-            global $pdo;
-            $uploadModel = new Upload($pdo);
+            $uploadModel = $this->uploadModel;
             
             require_once __DIR__ . '/../Views/projects/view.php';
-            
         } catch (Exception $e) {
-            $this->logger->error('Error viewing project', [
-                'project_id' => $id,
-                'error' => $e->getMessage()
-            ]);
+            $this->logger->error('Error viewing project', ['error' => $e->getMessage()]);
             require_once __DIR__ . '/../Views/errors/project_error.php';
         }
     }
@@ -116,12 +106,14 @@ class ProjectController {
             exit;
         }
     
+        // Get all projects regardless of user role
         $projects = $this->projectModel->getAllProjects();
         $projectTasks = [];
         foreach ($projects as $project) {
             $projectTasks[$project['id']] = $this->taskModel->getAllTasksByProjectId($project['id']);
         }
-        $commentModel = $this->commentModel;  // Make commentModel available to the view
+        $commentModel = $this->commentModel;
+        $uploadModel = $this->uploadModel;  // Make uploadModel available to the view
 
         require_once __DIR__ . '/../Views/dashboard.php';
     }

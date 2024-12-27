@@ -11,6 +11,7 @@ class TaskController {
     private $taskModel;
     private $commentModel;
     private $projectModel;
+    private $uploadModel;
     private $logger;
     private $pdo;
 
@@ -19,35 +20,54 @@ class TaskController {
         $this->taskModel = new Task($pdo);
         $this->commentModel = new Comment($pdo);
         $this->projectModel = new Project($pdo);
+        $this->uploadModel = new Upload($pdo);
         $this->logger = new Logger();
         $this->pdo = $pdo;
     }
 
-    public function create($project_id) {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = $_POST['name'] ?? '';
-            $description = $_POST['description'] ?? '';
-            $status = $_POST['status'] ?? 'pending';
-            $time = $_POST['time'] ?? 0;
-
-            try {
-                $task_id = $this->taskModel->createTask($name, $description, $status, $time);
-                $this->taskModel->assignTaskToProject($task_id, $project_id);
-                
-                $this->logger->info('Task created', ['task_id' => $task_id, 'project_id' => $project_id]);
-                $_SESSION['success'] = 'Task created successfully';
-                header("Location: /projects/view/$project_id");
-                exit;
-            } catch (PDOException $e) {
-                $this->logger->error('Error creating task', ['error' => $e->getMessage()]);
-                $_SESSION['error'] = 'Error creating task: ' . $e->getMessage();
-            }
-        }
+    public function showCreateForm($project_id) {
+        $projectTasks = $this->taskModel->getAllTasksByProjectId($project_id);
         require_once __DIR__ . '/../Views/tasks/create.php';
+    }
+
+    public function create($project_id) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            throw new Exception('Invalid request method');
+        }
+
+        $name = $_POST['name'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $status = $_POST['status'] ?? 'pending';
+        $time = $_POST['time'] ?? 0;
+        $parent_task_id = !empty($_POST['parent_task_id']) ? $_POST['parent_task_id'] : null;
+
+        if (empty($name) || empty($description)) {
+            throw new Exception('Name and description are required');
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+            $task_id = $this->taskModel->createTask($name, $description, $status, $time, $parent_task_id);
+            $this->taskModel->assignTaskToProject($task_id, $project_id);
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     public function edit($id) {
         $task = $this->taskModel->getTask($id);
+        if (!$task) {
+            require_once __DIR__ . '/../Views/errors/task_not_found.php';
+            return;
+        }
+
+        $project = $this->projectModel->getProjectByTaskId($id);
+        $projectTasks = $this->taskModel->getAllTasksByProjectId($project['id']);
         $commentModel = $this->commentModel;
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -55,9 +75,10 @@ class TaskController {
             $description = $_POST['description'] ?? '';
             $status = $_POST['status'] ?? 'pending';
             $time = $_POST['time'] ?? 0;
+            $parent_task_id = !empty($_POST['parent_task_id']) ? $_POST['parent_task_id'] : null;
     
             try {
-                $this->taskModel->updateTask($id, $name, $description, $status, $time);
+                $this->taskModel->updateTask($id, $name, $description, $status, $time, $parent_task_id);
                 $this->logger->info('Task updated', ['id' => $id]);
                 $_SESSION['success'] = 'Task updated successfully';
                 header('Location: /projects');
@@ -95,40 +116,24 @@ class TaskController {
     }
 
     public function view($id) {
-        global $pdo;
         try {
             $task = $this->taskModel->getTask($id);
-            
             if (!$task) {
-                $this->logger->warning('Invalid task access attempt', [
-                    'task_id' => $id,
-                    'user' => isset($_SESSION['user']) ? $_SESSION['user']['email'] : 'guest'
-                ]);
-                
                 require_once __DIR__ . '/../Views/errors/task_not_found.php';
                 return;
             }
-            
-            // Get the project information for this task
+
             $project = $this->projectModel->getProjectByTaskId($id);
-            
-            if (!$project) {
-                $this->logger->error('Task found but no associated project', ['task_id' => $id]);
-                require_once __DIR__ . '/../Views/errors/task_not_found.php';
-                return;
-            }
-            
             $commentModel = $this->commentModel;
-            $comments = $commentModel->getCommentsByTaskId($id);
-            $uploadModel = new Upload($pdo);
+            $uploadModel = $this->uploadModel;
             
+            // Get task hierarchy and child tasks
+            $taskHierarchy = $this->taskModel->getTaskHierarchy($id);
+            $childTasks = $this->taskModel->getChildTasks($id);
+
             require_once __DIR__ . '/../Views/tasks/view.php';
-            
         } catch (Exception $e) {
-            $this->logger->error('Error viewing task', [
-                'task_id' => $id,
-                'error' => $e->getMessage()
-            ]);
+            $this->logger->error('Error viewing task', ['error' => $e->getMessage()]);
             require_once __DIR__ . '/../Views/errors/task_error.php';
         }
     }

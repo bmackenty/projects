@@ -63,11 +63,27 @@ switch ($request) {
         (new TaskController())->uploadFile($task_id);
         break;
 
-    case (preg_match('/^\/projects\/(\d+)\/tasks\/create$/', $request, $matches) ? true : false):
-        $project_id = $matches[1];
-        require __DIR__ . '/../app/Controllers/TaskController.php';
-        (new TaskController())->create($project_id);
-        break;
+        case (preg_match('/^\/projects\/(\d+)\/tasks\/create$/', $request, $matches) ? true : false):
+            $project_id = $matches[1];
+            require __DIR__ . '/../app/Controllers/TaskController.php';
+            $controller = new TaskController();
+            
+            if ($request_method === 'POST') {
+                try {
+                    $result = $controller->create($project_id);
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => true]);
+                    exit;
+                } catch (Exception $e) {
+                    header('Content-Type: application/json');
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                    exit;
+                }
+            } else {
+                $controller->showCreateForm($project_id);
+            }
+            break;
 
     case (preg_match('/^\/tasks\/edit\/(\d+)$/', $request, $matches) ? true : false):
         $task_id = $matches[1];

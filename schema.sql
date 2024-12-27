@@ -23,7 +23,9 @@ CREATE TABLE tasks (
     description TEXT,
     status ENUM('pending', 'in_progress', 'completed') DEFAULT 'pending',
     time DECIMAL(10,2) DEFAULT 0.00,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    parent_task_id INT NULL,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );
 
 -- Task to Project relations table

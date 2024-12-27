@@ -14,7 +14,7 @@
                         </div>
                     <?php endif; ?>
 
-                    <form method="POST">
+                    <form method="POST" action="/projects/<?= $project_id ?>/tasks/create" id="createTaskForm">
                         <div class="mb-3">
                             <label for="name" class="form-label">Task Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
@@ -22,7 +22,19 @@
 
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
-                            <textarea class="wysiwyg-editor form-control" id="description" name="description" rows="3" required></textarea>
+                            <textarea class="wysiwyg-editor form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="parent_task_id" class="form-label">Parent Task (Optional)</label>
+                            <select class="form-control" id="parent_task_id" name="parent_task_id">
+                                <option value="">No Parent Task</option>
+                                <?php foreach ($projectTasks as $projectTask): ?>
+                                    <option value="<?= $projectTask['id'] ?>">
+                                        <?= htmlspecialchars($projectTask['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <div class="mb-3">
@@ -41,7 +53,7 @@
 
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary">Create Task</button>
-                            <a href="<?= $base_url ?>/projects/view/<?= $project_id ?>" class="btn btn-secondary">Cancel</a>
+                            <a href="/projects" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>
@@ -49,5 +61,7 @@
         </div>
     </div>
 </div>
+
+
 
 <?php require_once __DIR__ . '/../layouts/footer.php'; ?>
