@@ -1,5 +1,5 @@
-# projects
-Project management / task management system.
+# Projects
+Project management / task management system for my personal use. still in alpha. live version here: https://projects.mackenty.org
 
 ## Description:
 
