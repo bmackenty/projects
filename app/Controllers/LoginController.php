@@ -6,6 +6,7 @@ require_once __DIR__ . '/../Services/Logger.php';
 
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
+$remember = isset($_POST['remember']) ? true : false;
 $logger = new Logger();
 
 try {
@@ -20,6 +21,18 @@ try {
             'email' => $user['email'],
             'role' => $user['role']
         ];
+        
+        if ($remember) {
+            // Generate a secure token
+            $token = bin2hex(random_bytes(32));
+            $expiry = date('Y-m-d H:i:s', strtotime('+30 days'));
+            
+            // Store the remember token in the database
+            $userModel->storeRememberToken($user['id'], $token, $expiry);
+            
+            // Set the remember me cookie
+            setcookie('remember_token', $token, strtotime('+30 days'), '/', '', true, true);
+        }
         
         $logger->info('Login successful', ['user_id' => $user['id'], 'email' => $email]);
         unset($_SESSION['error']);

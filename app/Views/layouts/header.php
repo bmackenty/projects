@@ -3,6 +3,26 @@
     $base_url = "https://" . $_SERVER['HTTP_HOST'];
     require_once __DIR__ . '/../../Helpers/TimeHelper.php';  
 
+// Auto-login with remember token
+if (!isset($_SESSION['user']) && isset($_COOKIE['remember_token'])) {
+    require_once __DIR__ . '/../../config/database.php';
+    require_once __DIR__ . '/../../Models/User.php';
+    
+    $userModel = new User($pdo);
+    $user = $userModel->findByRememberToken($_COOKIE['remember_token']);
+    
+    if ($user) {
+        $_SESSION['user'] = [
+            'id' => $user['id'],
+            'email' => $user['email'],
+            'role' => $user['role']
+        ];
+    } else {
+        // Invalid or expired token, clear the cookie
+        setcookie('remember_token', '', time() - 3600, '/');
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
