@@ -13,11 +13,11 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function create($email, $password) {
+    public function create($name, $email, $password) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         
-        $stmt = $this->pdo->prepare("INSERT INTO users (email, password, role, created_at) VALUES (?, ?, 'user', NOW())");
-        $stmt->execute([$email, $hashed_password]);
+        $stmt = $this->pdo->prepare("INSERT INTO users (name, email, password, role, created_at) VALUES (?, ?, ?, 'user', NOW())");
+        $stmt->execute([$name, $email, $hashed_password]);
         
         return $this->pdo->lastInsertId();
     }

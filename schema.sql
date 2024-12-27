@@ -1,6 +1,7 @@
 -- Users table
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin') DEFAULT 'user',
@@ -75,5 +76,5 @@ CREATE INDEX idx_task_uploads ON task_uploads(task_id);
 CREATE INDEX idx_user_email ON users(email);
 
 -- Insert default admin user (password: admin123)
-INSERT INTO users (email, password, role) 
-VALUES ('admin@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+INSERT INTO users (name, email, password, role) 
+VALUES ('Administrator', 'admin@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');

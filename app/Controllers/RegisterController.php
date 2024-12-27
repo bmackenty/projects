@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../Models/User.php';
 require_once __DIR__ . '/../Services/Logger.php';
 
+$name = $_POST['name'] ?? '';
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 $password_confirm = $_POST['password_confirm'] ?? '';
@@ -12,6 +13,13 @@ $logger = new Logger();
 $logger->info('Registration attempt', ['email' => $email]);
 
 // Basic validation
+if (empty($name)) {
+    $logger->warning('Registration failed: Name is required', ['email' => $email]);
+    $_SESSION['error'] = 'Name is required';
+    header('Location: /register');
+    exit;
+}
+
 if ($password !== $password_confirm) {
     $logger->warning('Registration failed: Passwords do not match', ['email' => $email]);
     $_SESSION['error'] = 'Passwords do not match';
@@ -36,11 +44,12 @@ try {
         exit;
     }
 
-    $user_id = $userModel->create($email, $password);
+    $user_id = $userModel->create($name, $email, $password);
     $logger->info('User registered successfully', ['user_id' => $user_id, 'email' => $email]);
 
     $_SESSION['user'] = [
         'id' => $user_id,
+        'name' => $name,
         'email' => $email,
         'role' => 'user'
     ];

@@ -3,25 +3,36 @@
     $base_url = "https://" . $_SERVER['HTTP_HOST'];
     require_once __DIR__ . '/../../Helpers/TimeHelper.php';  
 
+// Debug the path resolution
+$config_path = __DIR__ . '/../../../config/database.php';
+error_log("Attempting to load database config from: " . $config_path);
+error_log("File exists check: " . (file_exists($config_path) ? 'true' : 'false'));
+
 // Auto-login with remember token
 if (!isset($_SESSION['user']) && isset($_COOKIE['remember_token'])) {
-    require_once __DIR__ . '/../../config/database.php';
+    require_once $config_path;  // This should create the $pdo variable
     require_once __DIR__ . '/../../Models/User.php';
     
-    $userModel = new User($pdo);
-    $user = $userModel->findByRememberToken($_COOKIE['remember_token']);
-    
-    if ($user) {
-        $_SESSION['user'] = [
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'role' => $user['role']
-        ];
+    if (isset($pdo)) {  // Check if $pdo exists before using it
+        $userModel = new User($pdo);
+        $user = $userModel->findByRememberToken($_COOKIE['remember_token']);
+        
+        if ($user) {
+            $_SESSION['user'] = [
+                'id' => $user['id'],
+                'email' => $user['email'],
+                'role' => $user['role']
+            ];
+        } else {
+            // Invalid or expired token, clear the cookie
+            setcookie('remember_token', '', time() - 3600, '/');
+        }
     } else {
-        // Invalid or expired token, clear the cookie
-        setcookie('remember_token', '', time() - 3600, '/');
+        error_log("Database connection not established - PDO variable is not set");
     }
 }
+
+error_log("Current working directory: " . getcwd());
 
 ?>
 <!DOCTYPE html>
