@@ -30,7 +30,7 @@
                     <div class="accordion-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <p class="text-muted small">Last updated: <?= TimeHelper::getRelativeTime($project['last_updated']) ?></p>
+                                <p class="text-muted small">Last updated: <?= $project['last_updated'] ?> <?= TimeHelper::getRelativeTime($project['last_updated']) ?></p>
                                 <p><?= $project['description'] ?></p>
                             </div>
                             <?php if($_SESSION['user']['role'] === 'admin'): ?>
