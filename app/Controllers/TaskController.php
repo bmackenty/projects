@@ -96,18 +96,41 @@ class TaskController {
 
     public function view($id) {
         global $pdo;
-        $task = $this->taskModel->getTask($id);
-        
-        // Get the project information for this task
-        $project = $this->projectModel->getProjectByTaskId($id);
-        
-        $commentModel = $this->commentModel;
-        $comments = $commentModel->getCommentsByTaskId($id);
-        
-        // Create upload model instance and pass it to the view
-        $uploadModel = new Upload($pdo);
-        
-        require_once __DIR__ . '/../Views/tasks/view.php';
+        try {
+            $task = $this->taskModel->getTask($id);
+            
+            if (!$task) {
+                $this->logger->warning('Invalid task access attempt', [
+                    'task_id' => $id,
+                    'user' => isset($_SESSION['user']) ? $_SESSION['user']['email'] : 'guest'
+                ]);
+                
+                require_once __DIR__ . '/../Views/errors/task_not_found.php';
+                return;
+            }
+            
+            // Get the project information for this task
+            $project = $this->projectModel->getProjectByTaskId($id);
+            
+            if (!$project) {
+                $this->logger->error('Task found but no associated project', ['task_id' => $id]);
+                require_once __DIR__ . '/../Views/errors/task_not_found.php';
+                return;
+            }
+            
+            $commentModel = $this->commentModel;
+            $comments = $commentModel->getCommentsByTaskId($id);
+            $uploadModel = new Upload($pdo);
+            
+            require_once __DIR__ . '/../Views/tasks/view.php';
+            
+        } catch (Exception $e) {
+            $this->logger->error('Error viewing task', [
+                'task_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            require_once __DIR__ . '/../Views/errors/task_error.php';
+        }
     }
 
     public function uploadFile($task_id) {

@@ -57,15 +57,35 @@ class ProjectController {
     }
 
     public function view($id) {
-        $project = $this->projectModel->getProject($id);
-        $tasks = $this->taskModel->getAllTasksByProjectId($id);
-        $commentModel = $this->commentModel;
-        
-        // Make Upload model available to the view
-        global $pdo;
-        $uploadModel = new Upload($pdo);
-        
-        require_once __DIR__ . '/../Views/projects/view.php';
+        try {
+            $project = $this->projectModel->getProject($id);
+            
+            if (!$project) {
+                $this->logger->warning('Invalid project access attempt', [
+                    'project_id' => $id,
+                    'user' => isset($_SESSION['user']) ? $_SESSION['user']['email'] : 'guest'
+                ]);
+                
+                require_once __DIR__ . '/../Views/errors/project_not_found.php';
+                return;
+            }
+            
+            $tasks = $this->taskModel->getAllTasksByProjectId($id);
+            $commentModel = $this->commentModel;
+            
+            // Make Upload model available to the view
+            global $pdo;
+            $uploadModel = new Upload($pdo);
+            
+            require_once __DIR__ . '/../Views/projects/view.php';
+            
+        } catch (Exception $e) {
+            $this->logger->error('Error viewing project', [
+                'project_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            require_once __DIR__ . '/../Views/errors/project_error.php';
+        }
     }
 
 
