@@ -71,13 +71,12 @@ switch ($request) {
             if ($request_method === 'POST') {
                 try {
                     $result = $controller->create($project_id);
-                    header('Content-Type: application/json');
-                    echo json_encode(['success' => true]);
+                    $_SESSION['success'] = 'Task created successfully';
+                    header('Location: /dashboard');
                     exit;
                 } catch (Exception $e) {
-                    header('Content-Type: application/json');
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+                    $_SESSION['error'] = $e->getMessage();
+                    header('Location: /projects/' . $project_id . '/tasks/create');
                     exit;
                 }
             } else {
