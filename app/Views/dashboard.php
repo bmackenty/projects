@@ -100,7 +100,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">Task Status Distribution</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="height: 300px">
                     <canvas id="taskStatusChart"></canvas>
                 </div>
             </div>
@@ -110,7 +110,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">Due Date Distribution</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="height: 300px">
                     <canvas id="dueDateChart"></canvas>
                 </div>
             </div>
@@ -309,13 +309,130 @@
     </div>
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Task List Modal -->
+<div class="modal fade" id="taskListModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Project</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskListBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Data for JavaScript -->
+<script>
+const taskData = {
+    overdue: [],
+    upcoming: [],
+    noDate: [],
+    pending: [],
+    in_progress: [],
+    completed: []
+};
+
+<?php
+// Prepare task data for JavaScript
+foreach ($projects as $project) {
+    if (isset($projectTasks[$project['id']])) {
+        foreach ($projectTasks[$project['id']] as $task) {
+            $taskInfo = [
+                'id' => $task['id'],
+                'name' => htmlspecialchars($task['name']),
+                'project' => [
+                    'id' => $project['id'],
+                    'name' => htmlspecialchars($project['name'])
+                ],
+                'status' => $task['status'],
+                'due_date' => $task['due_date'],
+                'last_updated' => TimeHelper::getRelativeTime($task['last_updated'])
+            ];
+
+            // Add to status arrays
+            $taskData['status'][] = $task['status'];
+
+            // Add to due date arrays
+            if ($task['status'] !== 'completed') {
+                if (!$task['due_date']) {
+                    echo "taskData.noDate.push(" . json_encode($taskInfo) . ");\n";
+                } else {
+                    $dueDate = new DateTime($task['due_date']);
+                    $today = new DateTime();
+                    if ($today > $dueDate) {
+                        echo "taskData.overdue.push(" . json_encode($taskInfo) . ");\n";
+                    } else {
+                        echo "taskData.upcoming.push(" . json_encode($taskInfo) . ");\n";
+                    }
+                }
+            }
+
+            // Add to status arrays
+            echo "taskData.{$task['status']}.push(" . json_encode($taskInfo) . ");\n";
+        }
+    }
+}
+?>
+</script>
+
+<!-- Chart.js and Modal Handling -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Task Status Distribution Chart
-    const statusCtx = document.getElementById('taskStatusChart').getContext('2d');
-    new Chart(statusCtx, {
+    const modal = new bootstrap.Modal(document.getElementById('taskListModal'));
+    const modalTitle = document.querySelector('#taskListModal .modal-title');
+    const taskListBody = document.getElementById('taskListBody');
+
+    function showTaskList(category, title) {
+        const tasks = taskData[category];
+        modalTitle.textContent = title;
+        
+        taskListBody.innerHTML = tasks.map(task => `
+            <tr>
+                <td>
+                    <a href="<?= $base_url ?>/tasks/view/${task.id}" class="text-decoration-none">
+                        ${task.name}
+                    </a>
+                </td>
+                <td>
+                    <a href="<?= $base_url ?>/projects/view/${task.project.id}" class="text-decoration-none">
+                        ${task.project.name}
+                    </a>
+                </td>
+                <td>
+                    <span class="badge bg-${task.status === 'completed' ? 'success' : 
+                                         (task.status === 'in_progress' ? 'warning' : 'secondary')}">
+                        ${task.status.replace('_', ' ')}
+                    </span>
+                </td>
+                <td>
+                    ${task.due_date ? task.due_date : '<span class="text-muted">-</span>'}
+                </td>
+                <td>${task.last_updated}</td>
+            </tr>
+        `).join('');
+
+        modal.show();
+    }
+
+    // Make charts clickable
+    const taskStatusChart = new Chart(document.getElementById('taskStatusChart').getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['Completed', 'In Progress', 'Pending'],
@@ -332,13 +449,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 legend: {
                     position: 'bottom'
                 }
+            },
+            onClick: (e, elements) => {
+                if (elements.length > 0) {
+                    const categories = ['completed', 'in_progress', 'pending'];
+                    const labels = ['Completed Tasks', 'In Progress Tasks', 'Pending Tasks'];
+                    showTaskList(categories[elements[0].index], labels[elements[0].index]);
+                }
             }
         }
     });
 
-    // Due Date Distribution Chart
-    const dueDateCtx = document.getElementById('dueDateChart').getContext('2d');
-    new Chart(dueDateCtx, {
+    const dueDateChart = new Chart(document.getElementById('dueDateChart').getContext('2d'), {
         type: 'pie',
         data: {
             labels: ['Overdue', 'Upcoming', 'No Due Date'],
@@ -353,19 +475,36 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     position: 'bottom'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            let value = context.raw || 0;
-                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            let percentage = Math.round((value / total) * 100);
-                            return `${label}: ${value} (${percentage}%)`;
-                        }
-                    }
+                }
+            },
+            onClick: (e, elements) => {
+                if (elements.length > 0) {
+                    const categories = ['overdue', 'upcoming', 'noDate'];
+                    const labels = ['Overdue Tasks', 'Upcoming Tasks', 'Tasks Without Due Date'];
+                    showTaskList(categories[elements[0].index], labels[elements[0].index]);
                 }
             }
+        }
+    });
+
+    // Make summary cards clickable
+    document.querySelectorAll('.card').forEach(card => {
+        const title = card.querySelector('.card-title')?.textContent.trim().toLowerCase();
+        if (title) {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+                switch (title) {
+                    case 'total tasks':
+                        showTaskList('all', 'All Tasks');
+                        break;
+                    case 'in progress':
+                        showTaskList('in_progress', 'In Progress Tasks');
+                        break;
+                    case 'completion rate':
+                        showTaskList('completed', 'Completed Tasks');
+                        break;
+                }
+            });
         }
     });
 });
