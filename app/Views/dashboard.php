@@ -3,16 +3,55 @@
 <div class="container">
     <h1 class="mb-4">Dashboard</h1>
 
+    <?php
+    // Define renderTask function outside the loop
+    function renderTask($task, $allTasks, $level = 0) {
+        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
+        ?>
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">
+                        <?= $indent ?>
+                        <?php if ($level > 0): ?>
+                            <i class="bi bi-arrow-return-right"></i>
+                        <?php endif; ?>
+                        <a href="<?= $GLOBALS['base_url'] ?>/tasks/view/<?= $task['id'] ?>" 
+                           class="text-decoration-none">
+                            <?= htmlspecialchars($task['name']) ?>
+                        </a>
+                    </h6>
+                    <p class="mb-1 small text-muted"><?= $task['description'] ?></p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-<?= $task['status'] === 'completed' ? 'success' :
+                        ($task['status'] === 'in_progress' ? 'warning' : 'secondary') ?>">
+                        <?= ucfirst(str_replace('_', ' ', $task['status'])) ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <?php
+        // Find and render child tasks
+        $childTasks = array_filter($allTasks, function($t) use ($task) {
+            return $t['parent_task_id'] == $task['id'];
+        });
+        foreach ($childTasks as $childTask) {
+            renderTask($childTask, $allTasks, $level + 1);
+        }
+    }
+    ?>
+
     <div class="accordion" id="projectAccordion">
         <?php foreach ($projects as $project): ?>
             <div class="accordion-item mb-3 border">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" 
+                    <button class="accordion-button collapsed pe-5" type="button" 
                             data-bs-toggle="collapse" 
                             data-bs-target="#project-<?= $project['id'] ?>">
                         <div class="d-flex justify-content-between align-items-center w-100">
                             <span><?= htmlspecialchars($project['name']) ?></span>
-                            <span class="badge bg-secondary ms-2 ">
+                            <span class="badge bg-secondary ms-3 me-3">
                                 <?= !empty($projectTasks[$project['id']]) ? count($projectTasks[$project['id']]) : 0 ?> tasks
                             </span>
                         </div>
@@ -35,27 +74,21 @@
                         
                         <?php if (!empty($projectTasks[$project['id']])): ?>
                             <div class="list-group">
-                                <?php foreach ($projectTasks[$project['id']] as $task): ?>
-                                    <div class="list-group-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1">
-                                                    <a href="<?= $base_url ?>/tasks/view/<?= $task['id'] ?>" 
-                                                       class="text-decoration-none">
-                                                        <?= htmlspecialchars($task['name']) ?>
-                                                    </a>
-                                                </h6>
-                                                <p class="mb-1 small text-muted"><?= htmlspecialchars($task['description']) ?></p>
-                                            </div>
-                                            <div class="text-end">
-                                                <span class="badge bg-<?= $task['status'] === 'completed' ? 'success' :
-                                                    ($task['status'] === 'in_progress' ? 'warning' : 'secondary') ?>">
-                                                    <?= ucfirst(str_replace('_', ' ', $task['status'])) ?>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
+                                <?php
+                                $parentTasks = array_filter($projectTasks[$project['id']], function($task) {
+                                    return empty($task['parent_task_id']);
+                                });
+
+                                if (empty($parentTasks)) {
+                                    foreach ($projectTasks[$project['id']] as $task):
+                                        renderTask($task, $projectTasks[$project['id']]);
+                                    endforeach;
+                                } else {
+                                    foreach ($parentTasks as $parentTask):
+                                        renderTask($parentTask, $projectTasks[$project['id']]);
+                                    endforeach;
+                                }
+                                ?>
                             </div>
                         <?php else: ?>
                             <p class="text-muted">No tasks yet.</p>

@@ -13,10 +13,16 @@ class Task {
             FROM tasks t
             JOIN task_to_project_relations r ON t.id = r.task_id
             WHERE r.project_id = ?
-            ORDER BY t.last_updated DESC
+            ORDER BY 
+                CASE 
+                    WHEN t.status = "completed" THEN 1 
+                    ELSE 0 
+                END,
+                t.last_updated DESC
         ');
         $stmt->execute([$project_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     }
 
     public function getTask($id) {

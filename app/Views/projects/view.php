@@ -69,7 +69,7 @@
                                     <?php endif; ?>
                                 </a>
                             </td>
-                            <td><?= htmlspecialchars(substr($task['description'], 0, 100)) ?>...</td>
+                            <td><?=substr($task['description'], 0, 80) ?>...</td>
                             <td>
                                 <span class="badge bg-<?= $task['status'] === 'completed' ? 'success' :
                                     ($task['status'] === 'in_progress' ? 'warning' : 'secondary') ?>">
