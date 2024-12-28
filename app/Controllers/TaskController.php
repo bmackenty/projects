@@ -6,6 +6,8 @@ require_once __DIR__ . '/../Models/Comment.php';
 require_once __DIR__ . '/../Models/Project.php';
 require_once __DIR__ . '/../Services/Logger.php';
 require_once __DIR__ . '/../Models/Upload.php';
+require_once __DIR__ . '/../Models/TaskAssignment.php';
+require_once __DIR__ . '/../Models/User.php';
 
 class TaskController {
     private $taskModel;
@@ -14,6 +16,8 @@ class TaskController {
     private $uploadModel;
     private $logger;
     private $pdo;
+    private $taskAssignmentModel;
+    private $userModel;
 
     public function __construct() {
         global $pdo;
@@ -23,10 +27,13 @@ class TaskController {
         $this->uploadModel = new Upload($pdo);
         $this->logger = new Logger();
         $this->pdo = $pdo;
+        $this->taskAssignmentModel = new TaskAssignment($pdo);
+        $this->userModel = new User($pdo);
     }
 
     public function showCreateForm($project_id) {
         $projectTasks = $this->taskModel->getAllTasksByProjectId($project_id);
+        $users = $this->userModel->getAllUsers();
         require_once __DIR__ . '/../Views/tasks/create.php';
     }
 
@@ -41,6 +48,7 @@ class TaskController {
         $time = $_POST['time'] ?? 0;
         $parent_task_id = !empty($_POST['parent_task_id']) ? $_POST['parent_task_id'] : null;
         $due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
+        $assigned_user = !empty($_POST['assigned_user']) ? $_POST['assigned_user'] : null;
 
         if (empty($name) || empty($description)) {
             throw new Exception('Name and description are required');
@@ -48,8 +56,18 @@ class TaskController {
 
         try {
             $this->pdo->beginTransaction();
+            
+            // Create the task
             $task_id = $this->taskModel->createTask($name, $description, $status, $time, $parent_task_id, $due_date);
+            
+            // Assign to project
             $this->taskModel->assignTaskToProject($task_id, $project_id);
+            
+            // Assign to user if specified
+            if ($assigned_user) {
+                $this->taskAssignmentModel->assignTask($task_id, $assigned_user);
+            }
+            
             $this->pdo->commit();
             return true;
         } catch (Exception $e) {
@@ -71,6 +89,9 @@ class TaskController {
         $projectTasks = $this->taskModel->getAllTasksByProjectId($project['id']);
         $commentModel = $this->commentModel;
         
+        $users = $this->userModel->getAllUsers();
+        $assignment = $this->taskAssignmentModel->getTaskAssignment($id);
+        
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = $_POST['name'] ?? '';
             $description = $_POST['description'] ?? '';
@@ -88,6 +109,14 @@ class TaskController {
             } catch (PDOException $e) {
                 $this->logger->error('Error updating task', ['error' => $e->getMessage()]);
                 $_SESSION['error'] = 'Error updating task: ' . $e->getMessage();
+            }
+
+            // Handle assignment
+            $assigned_user = !empty($_POST['assigned_user']) ? $_POST['assigned_user'] : null;
+            if ($assigned_user) {
+                $this->taskAssignmentModel->assignTask($id, $assigned_user);
+            } else {
+                $this->taskAssignmentModel->unassignTask($id);
             }
         }
         
@@ -119,6 +148,11 @@ class TaskController {
     }
 
     public function view($id) {
+        if (!isset($_SESSION['user'])) {
+            header('Location: /login');
+            exit;
+        }
+
         try {
             $task = $this->taskModel->getTask($id);
             if (!$task) {
@@ -127,12 +161,10 @@ class TaskController {
             }
 
             $project = $this->projectModel->getProjectByTaskId($id);
-            $commentModel = $this->commentModel;
-            $uploadModel = $this->uploadModel;
-            
-            // Get task hierarchy and child tasks
-            $taskHierarchy = $this->taskModel->getTaskHierarchy($id);
             $childTasks = $this->taskModel->getChildTasks($id);
+            $taskHierarchy = $this->taskModel->getTaskHierarchy($id);
+            $uploads = $this->uploadModel->getUploadsByTaskId($id);
+            $assignment = $this->taskAssignmentModel->getTaskAssignment($id);
 
             require_once __DIR__ . '/../Views/tasks/view.php';
         } catch (Exception $e) {

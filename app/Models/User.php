@@ -70,4 +70,15 @@ class User {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         return $user && password_verify($password, $user['password']);
     }
+
+    public function getUser($id) {
+        $stmt = $this->pdo->prepare('SELECT id, name, email, role, created_at FROM users WHERE id = ?');
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllUsers() {
+        $stmt = $this->pdo->query('SELECT id, name, email, role FROM users ORDER BY name');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

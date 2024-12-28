@@ -74,11 +74,23 @@ CREATE TABLE remember_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Task assignments table
+CREATE TABLE task_assignments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    task_id INT NOT NULL,
+    user_id INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_task_assignment (task_id)
+);
+
 -- Create indexes for better performance
 CREATE INDEX idx_task_project ON task_to_project_relations(task_id, project_id);
 CREATE INDEX idx_task_comments ON comments(task_id);
 CREATE INDEX idx_task_uploads ON task_uploads(task_id);
 CREATE INDEX idx_user_email ON users(email);
+CREATE INDEX idx_task_assignments ON task_assignments(user_id);
 
 -- Insert default admin user (password: admin123)
 INSERT INTO users (name, email, password, role) 

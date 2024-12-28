@@ -105,7 +105,34 @@ class Task {
     }
 
     public function deleteTask($id) {
-        $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE id = ?');
-        return $stmt->execute([$id]);
+        try {
+            $this->pdo->beginTransaction();
+
+            // Delete task assignments first
+            $stmt = $this->pdo->prepare('DELETE FROM task_assignments WHERE task_id = ?');
+            $stmt->execute([$id]);
+
+            // Delete task comments
+            $stmt = $this->pdo->prepare('DELETE FROM comments WHERE task_id = ?');
+            $stmt->execute([$id]);
+
+            // Delete task uploads
+            $stmt = $this->pdo->prepare('DELETE FROM task_uploads WHERE task_id = ?');
+            $stmt->execute([$id]);
+
+            // Delete task project relations
+            $stmt = $this->pdo->prepare('DELETE FROM task_to_project_relations WHERE task_id = ?');
+            $stmt->execute([$id]);
+
+            // Delete the task itself
+            $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE id = ?');
+            $stmt->execute([$id]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
     }
 }

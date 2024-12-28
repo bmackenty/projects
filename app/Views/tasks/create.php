@@ -56,6 +56,18 @@
                             <input type="date" class="form-control" id="due_date" name="due_date">
                         </div>
 
+                        <div class="mb-3">
+                            <label for="assigned_user" class="form-label">Assign To (Optional)</label>
+                            <select class="form-control" id="assigned_user" name="assigned_user">
+                                <option value="">Unassigned</option>
+                                <?php foreach ($users as $user): ?>
+                                    <option value="<?= $user['id'] ?>">
+                                        <?= htmlspecialchars($user['name']) ?> (<?= htmlspecialchars($user['email']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary">Create Task</button>
                             <a href="/projects" class="btn btn-secondary">Cancel</a>

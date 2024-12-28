@@ -1,4 +1,4 @@
-<?php require_once __DIR__ . '/layouts/header.php'; ?>
+<?php require_once __DIR__ . '/../layouts/header.php'; ?>
 
 <div class="container">
     <div class="row justify-content-center mt-5">
@@ -57,4 +57,4 @@
     </div>
 </div>
 
-<?php require_once __DIR__ . '/layouts/footer.php'; ?>
+<?php require_once __DIR__ . '/../layouts/footer.php'; ?>

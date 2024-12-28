@@ -5,8 +5,7 @@
 
 // Debug the path resolution
 $config_path = __DIR__ . '/../../../config/database.php';
-error_log("Attempting to load database config from: " . $config_path);
-error_log("File exists check: " . (file_exists($config_path) ? 'true' : 'false'));
+
 
 // Auto-login with remember token
 if (!isset($_SESSION['user']) && isset($_COOKIE['remember_token'])) {
@@ -32,7 +31,7 @@ if (!isset($_SESSION['user']) && isset($_COOKIE['remember_token'])) {
     }
 }
 
-error_log("Current working directory: " . getcwd());
+
 
 ?>
 <!DOCTYPE html>
@@ -43,9 +42,17 @@ error_log("Current working directory: " . getcwd());
     <title>Project Management System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <?php 
+    // Get the current URI
+    $current_uri = $_SERVER['REQUEST_URI'];
+    if (strpos($current_uri, '/dashboard') !== false): 
+    ?>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <?php endif; ?>
+    
     <script src="https://cdn.tiny.cloud/1/0ej5pnow0o4gxdyaqdyz2zgdu0f4nulp55y17gr52byvbd35/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
@@ -71,10 +78,11 @@ error_log("Current working directory: " . getcwd());
                 <ul class="navbar-nav">
                     <?php if(isset($_SESSION['user'])): ?>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
                                 <?= htmlspecialchars($_SESSION['user']['email']) ?>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="<?= $base_url ?>/profile">Profile</a></li>
                                 <li><a class="dropdown-item" href="<?= $base_url ?>/logout">Logout</a></li>
                             </ul>

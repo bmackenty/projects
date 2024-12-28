@@ -127,6 +127,17 @@
                                 <?php endif; ?>
                             </p>
                         </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-1">Assigned To</h6>
+                            <?php if ($assignment): ?>
+                                <p class="mb-0">
+                                    <?= htmlspecialchars($assignment['user_name']) ?>
+                                    <small class="text-muted">(<?= htmlspecialchars($assignment['user_email']) ?>)</small>
+                                </p>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">Unassigned</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>

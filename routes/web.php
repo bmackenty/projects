@@ -126,8 +126,9 @@ switch ($request) {
         break;
 
     case '/profile':
-        require __DIR__ . '/../app/Controllers/ProfileController.php';
-        (new ProfileController())->index();
+        require __DIR__ . '/../app/Controllers/UserController.php';
+        $controller = new UserController();
+        $controller->profile();
         break;
 
     case '/profile/update':
@@ -144,6 +145,13 @@ switch ($request) {
             require __DIR__ . '/../app/Controllers/TaskController.php';
             (new TaskController())->delete($task_id);
         }
+        break;
+
+    case (preg_match('/^\/users\/(\d+)$/', $request, $matches) ? true : false):
+        $user_id = $matches[1];
+        require __DIR__ . '/../app/Controllers/UserController.php';
+        $controller = new UserController();
+        $controller->view($user_id);
         break;
 
     default:

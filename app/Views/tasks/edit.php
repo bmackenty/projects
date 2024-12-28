@@ -64,6 +64,19 @@
                                    value="<?= $task['due_date'] ? htmlspecialchars($task['due_date']) : '' ?>">
                         </div>
 
+                        <div class="mb-3">
+                            <label for="assigned_user" class="form-label">Assign To</label>
+                            <select class="form-control" id="assigned_user" name="assigned_user">
+                                <option value="">Unassigned</option>
+                                <?php foreach ($users as $user): ?>
+                                    <option value="<?= $user['id'] ?>" 
+                                        <?= ($assignment && $assignment['user_id'] == $user['id']) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($user['name']) ?> (<?= htmlspecialchars($user['email']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary">Update Task</button>
                             <a href="<?= $base_url ?>/projects" class="btn btn-secondary">Cancel</a>
