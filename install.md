@@ -89,7 +89,7 @@
 ## Optional Configuration
 
 - Configure TinyMCE editor (if you want to use your own API key):
-
+```javascript
     tinymce.init({
         selector: '.wysiwyg-editor',
         plugins: 'lists link image table code help wordcount',
@@ -104,7 +104,7 @@
         paste_word_valid_elements: "b,strong,i,em,h1,h2,h3,h4,h5,h6,p,ul,ol,li",
         paste_retain_style_properties: "none"
     });
-
+```
 
 
 
@@ -113,20 +113,20 @@
 ### If you encounter permission issues:
 - Check file ownership (should be your web server user):
 
-  chown -R www-data:www-data <project_directory>
+  `chown -R www-data:www-data <project_directory>`
 
 - Verify upload directory permissions:
 
-  chmod -R 755 public/uploads
+ ` chmod -R 755 public/uploads`
 
 - Ensure database user has proper privileges.
 
 ### If routes aren't working:
 - Verify `mod_rewrite` is enabled:
-
+```bash
   a2enmod rewrite
   service apache2 restart
-
+```
 - Check `.htaccess` file is being read.
 - Confirm `RewriteBase` is set correctly if not in the root directory.
 
@@ -135,7 +135,7 @@
 - Check MySQL user privileges.
 - Ensure PDO extension is enabled in PHP:
 
-  php -m | grep pdo
+  `php -m | grep pdo`
 
 
 ## Additional Notes
@@ -145,7 +145,8 @@
 - Maximum upload size is set to 5MB by default.
 
 Remember to configure your PHP settings (`php.ini`) for:
-
+```
   upload_max_filesize = 5M
   post_max_size = 5M
   memory_limit = 128M
+```
