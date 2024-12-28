@@ -13,19 +13,20 @@
 
 1. Clone the repository:
 
+   ```bash
    git clone https://github.com/bmackenty/projects.git
    cd <project_directory>
-
+   ```
 
 2. Create a MySQL database for the application (I use mariaDB and it works identically).
 
 3. Create the database schema by importing the SQL file:
    
-   mysql -u <username> -p <database_name> < database/schema.sql
+   `mysql -u <username> -p <database_name> < database/schema.sql`
   
 
 4. Create a database configuration file at `config/database.php`:
-
+```php
    <?php
    return [
        'host' => 'localhost',
@@ -33,12 +34,12 @@
        'username' => '<username>',
        'password' => '<password>',
    ];
-
+```
 
 5. Configure your Apache virtual host to point to the project's root directory.
   
    Ensure the `.htaccess` file is properly configured:
-
+```apache
       RewriteEngine On
       RewriteCond %{REQUEST_FILENAME} !-f
       RewriteCond %{REQUEST_FILENAME} !-d
@@ -48,19 +49,19 @@
       <IfModule mod_rewrite.c>
           RewriteRule ^public/uploads/ - [F,L]
       </IfModule>
-
+```
 
 6. Set proper permissions
-  
+  ```bash
    chmod -R 755 storage/
    chmod -R 755 bootstrap/cache/
-  
+  ```
 
 7. Create the uploads directory:
-
+```bash
    mkdir public/uploads
    chmod 755 public/uploads
- 
+ ```
 
 8. Default admin credentials:
    - Email: `admin@example.com`
@@ -76,12 +77,12 @@
   chmod 640 config/database.php
 
 - Ensure your `public/uploads` directory is properly secured through `.htaccess`:
-
+```apache
   <FilesMatch ".*">
       Order Allow,Deny
       Deny from all
   </FilesMatch>
-
+```
 
 ---
 
