@@ -31,37 +31,119 @@ $completionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100)
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-primary">Projects</h5>
-                    <h2 class="card-text"><?= $totalProjects ?></h2>
+
+
+    <!-- Feature Matrix -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4">Features</h2>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <!-- Project Management -->
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">
+                                <i class="bi bi-folder"></i> Project Management
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> Create and edit projects</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Project description with rich text</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Project progress tracking</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Last updated timestamps</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Project analytics</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-success">Tasks</h5>
-                    <h2 class="card-text"><?= $totalTasks ?></h2>
+
+                <!-- Task Management -->
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <i class="bi bi-list-check"></i> Task Management
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> Create and edit tasks</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Hierarchical task structure</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Task status tracking</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Due date management</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Time tracking</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-info">Comments</h5>
-                    <h2 class="card-text"><?= $totalComments ?></h2>
+
+                <!-- Collaboration -->
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">
+                                <i class="bi bi-people"></i> Collaboration
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> Comment system</li>
+                                <li><i class="bi bi-check-circle text-success"></i> File attachments</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Activity tracking</li>
+                                <li><i class="bi bi-check-circle text-success"></i> User roles</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Task assignments</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-warning">Completion Rate</h5>
-                    <h2 class="card-text"><?= $completionRate ?>%</h2>
+
+                <!-- Analytics -->
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">
+                                <i class="bi bi-graph-up"></i> Analytics
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> Project progress metrics</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Task completion rates</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Due date tracking</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Time spent analysis</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Activity monitoring</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management -->
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-danger">
+                                <i class="bi bi-person-gear"></i> User Management
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> User authentication</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Role-based access control</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Admin privileges</li>
+                                <li><i class="bi bi-check-circle text-success"></i> User activity tracking</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Secure sessions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interface -->
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-purple">
+                                <i class="bi bi-window"></i> Interface
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check-circle text-success"></i> Responsive design</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Rich text editor</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Interactive dashboards</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Progress visualization</li>
+                                <li><i class="bi bi-check-circle text-success"></i> Intuitive navigation</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
