@@ -103,9 +103,10 @@ class TaskController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $content = $_POST['content'] ?? '';
             $user_id = $_SESSION['user']['id'];
+            $parent_id = !empty($_POST['parent_id']) ? $_POST['parent_id'] : null;
 
             try {
-                $this->commentModel->createComment($task_id, $user_id, $content);
+                $this->commentModel->createComment($task_id, $user_id, $content, $parent_id);
                 $this->logger->info('Comment added', ['task_id' => $task_id]);
                 $_SESSION['success'] = 'Comment added successfully';
             } catch (PDOException $e) {
@@ -217,6 +218,48 @@ class TaskController {
 
         header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit;
+    }
+
+    public function delete($id) {
+        if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
+            $_SESSION['error'] = 'Unauthorized access';
+            header('Location: /dashboard');
+            exit;
+        }
+
+        try {
+            // Get the task and its project before deletion for redirection
+            $task = $this->taskModel->getTask($id);
+            $project = $this->projectModel->getProjectByTaskId($id);
+            
+            if (!$task) {
+                throw new Exception('Task not found');
+            }
+
+            // Begin transaction
+            $this->pdo->beginTransaction();
+            
+            // Delete the task (cascading will handle related records)
+            $this->taskModel->deleteTask($id);
+            
+            $this->pdo->commit();
+            
+            $this->logger->info('Task deleted', ['task_id' => $id]);
+            $_SESSION['success'] = 'Task deleted successfully';
+            
+            // Redirect back to the project view
+            header("Location: /projects/view/{$project['id']}");
+            exit;
+            
+        } catch (Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            $this->logger->error('Error deleting task', ['error' => $e->getMessage()]);
+            $_SESSION['error'] = 'Error deleting task: ' . $e->getMessage();
+            header('Location: ' . $_SERVER['HTTP_REFERER']);
+            exit;
+        }
     }
 
 

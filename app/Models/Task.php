@@ -103,4 +103,9 @@ class Task {
         
         return $hierarchy;
     }
+
+    public function deleteTask($id) {
+        $stmt = $this->pdo->prepare('DELETE FROM tasks WHERE id = ?');
+        return $stmt->execute([$id]);
+    }
 }

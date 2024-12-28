@@ -137,6 +137,15 @@ switch ($request) {
         }
         break;
 
+
+    case (preg_match('/^\/tasks\/delete\/(\d+)$/', $request, $matches) ? true : false):
+        if ($request_method === 'POST') {
+            $task_id = $matches[1];
+            require __DIR__ . '/../app/Controllers/TaskController.php';
+            (new TaskController())->delete($task_id);
+        }
+        break;
+
     default:
         require __DIR__ . '/../app/Views/404.php';
         break;

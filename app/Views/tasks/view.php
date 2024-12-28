@@ -21,9 +21,14 @@
             </h1>
         </div>
         <?php if ($_SESSION['user']['role'] === 'admin'): ?>
-            <a href="<?= $base_url ?>/tasks/edit/<?= $task['id'] ?>" class="btn btn-primary">
-                <i class="bi bi-pencil"></i> Edit Task
-            </a>
+            <div class="d-flex gap-2">
+                <a href="<?= $base_url ?>/tasks/edit/<?= $task['id'] ?>" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit Task
+                </a>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTaskModal">
+                    <i class="bi bi-trash"></i> Delete Task
+                </button>
+            </div>
         <?php endif; ?>
     </div>
 
@@ -147,31 +152,68 @@
                         $comments = $commentModel->getCommentsByTaskId($task['id']);
                         if (!empty($comments)):
                             foreach ($comments as $comment):
-                                ?>
-                                <div class="d-flex mb-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="avatar-initial rounded-circle bg-light text-primary">
-                                            <?= strtoupper(substr($comment['user_email'], 0, 1)) ?>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <h6 class="mb-0"><?= htmlspecialchars($comment['user_email']) ?></h6>
-                                            <small class="text-muted">
-                                                <?= TimeHelper::getRelativeTime($comment['created_at']) ?>
-                                            </small>
-                                        </div>
-                                        <p class="mb-0"><?= htmlspecialchars($comment['content']) ?></p>
-                                    </div>
-                                </div>
-                            <?php
-                            endforeach;
-                        else:
-                            ?>
-                            <p class="text-muted text-center mb-0">No comments yet</p>
-                        <?php
-                        endif;
                         ?>
+                                <div class="comment-thread mb-4">
+                                    <!-- Parent comment -->
+                                    <div class="d-flex mb-2">
+                                        <div class="flex-shrink-0">
+                                            <div class="avatar-initial rounded-circle bg-light text-primary">
+                                                <?= strtoupper(substr($comment['user_email'], 0, 1)) ?>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0"><?= htmlspecialchars($comment['user_email']) ?></h6>
+                                                <small class="text-muted">
+                                                    <?= TimeHelper::getRelativeTime($comment['created_at']) ?>
+                                                </small>
+                                            </div>
+                                            <p class="mb-1"><?= htmlspecialchars($comment['content']) ?></p>
+                                            <button class="btn btn-sm btn-link reply-trigger p-0" 
+                                                    data-comment-id="<?= $comment['id'] ?>">Reply</button>
+                                            
+                                            <!-- Reply form (hidden by default) -->
+                                            <form method="POST" action="<?= $base_url ?>/tasks/<?= $task['id'] ?>/comment" 
+                                                  class="reply-form mt-2 d-none" id="reply-form-<?= $comment['id'] ?>">
+                                                <input type="hidden" name="parent_id" value="<?= $comment['id'] ?>">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control" name="content" 
+                                                           placeholder="Write a reply..." required>
+                                                    <button class="btn btn-primary btn-sm" type="submit">Reply</button>
+                                                    <button type="button" class="btn btn-secondary btn-sm cancel-reply">Cancel</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Replies -->
+                                    <?php if (!empty($comment['replies'])): ?>
+                                        <div class="ms-5">
+                                            <?php foreach ($comment['replies'] as $reply): ?>
+                                                <div class="d-flex mb-2">
+                                                    <div class="flex-shrink-0">
+                                                        <div class="avatar-initial rounded-circle bg-light text-primary">
+                                                            <?= strtoupper(substr($reply['user_email'], 0, 1)) ?>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-grow-1 ms-3">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <h6 class="mb-0"><?= htmlspecialchars($reply['user_email']) ?></h6>
+                                                            <small class="text-muted">
+                                                                <?= TimeHelper::getRelativeTime($reply['created_at']) ?>
+                                                            </small>
+                                                        </div>
+                                                        <p class="mb-0"><?= htmlspecialchars($reply['content']) ?></p>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <p class="text-muted text-center mb-0">No comments yet</p>
+                        <?php endif; ?>
                     <?php else: ?>
                         <div class="alert alert-info mb-0">
                             <i class="bi bi-info-circle"></i>
@@ -259,6 +301,33 @@
     </div>
 </div>
 
+<!-- Delete Task Modal -->
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+                <?php if (!empty($childTasks)): ?>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Warning: This task has subtasks that will also be deleted.
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="<?= $base_url ?>/tasks/delete/<?= $task['id'] ?>" method="POST" style="display: inline;">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="btn btn-danger">Delete Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.rename-btn').forEach(btn => {
@@ -276,6 +345,26 @@
                 item.querySelector('.filename-display').classList.remove('d-none');
                 item.querySelector('.rename-form').classList.add('d-none');
                 item.querySelector('.rename-btn').classList.remove('d-none');
+            });
+        });
+
+        // Handle reply button clicks
+        document.querySelectorAll('.reply-trigger').forEach(button => {
+            button.addEventListener('click', function() {
+                const commentId = this.dataset.commentId;
+                const replyForm = document.getElementById(`reply-form-${commentId}`);
+                replyForm.classList.remove('d-none');
+                this.classList.add('d-none');
+            });
+        });
+
+        // Handle cancel reply button clicks
+        document.querySelectorAll('.cancel-reply').forEach(button => {
+            button.addEventListener('click', function() {
+                const replyForm = this.closest('.reply-form');
+                const replyTrigger = replyForm.previousElementSibling;
+                replyForm.classList.add('d-none');
+                replyTrigger.classList.remove('d-none');
             });
         });
     });
