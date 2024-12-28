@@ -140,11 +140,13 @@ switch ($request) {
 
 
     case (preg_match('/^\/tasks\/delete\/(\d+)$/', $request, $matches) ? true : false):
-        if ($request_method === 'POST') {
-            $task_id = $matches[1];
-            require __DIR__ . '/../app/Controllers/TaskController.php';
-            (new TaskController())->delete($task_id);
+        if ($request_method !== 'POST') {
+            header('HTTP/1.1 405 Method Not Allowed');
+            exit;
         }
+        $task_id = $matches[1];
+        require __DIR__ . '/../app/Controllers/TaskController.php';
+        (new TaskController())->delete($task_id);
         break;
 
     case (preg_match('/^\/users\/(\d+)$/', $request, $matches) ? true : false):

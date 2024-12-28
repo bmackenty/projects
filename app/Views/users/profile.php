@@ -81,7 +81,7 @@
                                     </a>
                                 </small>
                             </div>
-                            <p class="mb-1"><?= substr(htmlspecialchars($task['description']), 0, 100) ?>...</p>
+                            <p class="mb-1"><?= substr($task['description'], 0, 100) ?>...</p>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="badge bg-<?= $task['status'] === 'completed' ? 'success' :
                                     ($task['status'] === 'in_progress' ? 'warning' : 'secondary') ?>">

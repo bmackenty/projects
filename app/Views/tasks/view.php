@@ -1,4 +1,7 @@
-<?php require_once __DIR__ . '/../layouts/header.php'; ?>
+<?php
+
+require_once __DIR__ . '/../layouts/header.php';
+?>
 
 <div class="container">
     <!-- Task Header -->
@@ -148,89 +151,7 @@
                     <h5 class="mb-0">Comments</h5>
                 </div>
                 <div class="card-body">
-                    <?php if (isset($_SESSION['user'])): ?>
-                        <form method="POST" action="<?= $base_url ?>/tasks/<?= $task['id'] ?>/comment" class="mb-4">
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="content" placeholder="Add a comment..."
-                                    required>
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="bi bi-send"></i> Send
-                                </button>
-                            </div>
-                        </form>
-
-                        <?php
-                        $comments = $commentModel->getCommentsByTaskId($task['id']);
-                        if (!empty($comments)):
-                            foreach ($comments as $comment):
-                        ?>
-                                <div class="comment-thread mb-4">
-                                    <!-- Parent comment -->
-                                    <div class="d-flex mb-2">
-                                        <div class="flex-shrink-0">
-                                            <div class="avatar-initial rounded-circle bg-light text-primary">
-                                                <?= strtoupper(substr($comment['user_email'], 0, 1)) ?>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 ms-3">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0"><?= htmlspecialchars($comment['user_email']) ?></h6>
-                                                <small class="text-muted">
-                                                    <?= TimeHelper::getRelativeTime($comment['created_at']) ?>
-                                                </small>
-                                            </div>
-                                            <p class="mb-1"><?= htmlspecialchars($comment['content']) ?></p>
-                                            <button class="btn btn-sm btn-link reply-trigger p-0" 
-                                                    data-comment-id="<?= $comment['id'] ?>">Reply</button>
-                                            
-                                            <!-- Reply form (hidden by default) -->
-                                            <form method="POST" action="<?= $base_url ?>/tasks/<?= $task['id'] ?>/comment" 
-                                                  class="reply-form mt-2 d-none" id="reply-form-<?= $comment['id'] ?>">
-                                                <input type="hidden" name="parent_id" value="<?= $comment['id'] ?>">
-                                                <div class="input-group input-group-sm">
-                                                    <input type="text" class="form-control" name="content" 
-                                                           placeholder="Write a reply..." required>
-                                                    <button class="btn btn-primary btn-sm" type="submit">Reply</button>
-                                                    <button type="button" class="btn btn-secondary btn-sm cancel-reply">Cancel</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-
-                                    <!-- Replies -->
-                                    <?php if (!empty($comment['replies'])): ?>
-                                        <div class="ms-5">
-                                            <?php foreach ($comment['replies'] as $reply): ?>
-                                                <div class="d-flex mb-2">
-                                                    <div class="flex-shrink-0">
-                                                        <div class="avatar-initial rounded-circle bg-light text-primary">
-                                                            <?= strtoupper(substr($reply['user_email'], 0, 1)) ?>
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex-grow-1 ms-3">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <h6 class="mb-0"><?= htmlspecialchars($reply['user_email']) ?></h6>
-                                                            <small class="text-muted">
-                                                                <?= TimeHelper::getRelativeTime($reply['created_at']) ?>
-                                                            </small>
-                                                        </div>
-                                                        <p class="mb-0"><?= htmlspecialchars($reply['content']) ?></p>
-                                                    </div>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <p class="text-muted text-center mb-0">No comments yet</p>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <div class="alert alert-info mb-0">
-                            <i class="bi bi-info-circle"></i>
-                            Please <a href="<?= $base_url ?>/login" class="alert-link">login</a> to access comments.
-                        </div>
-                    <?php endif; ?>
+                    <?php require __DIR__ . '/../partials/task_comments.php'; ?>
                 </div>
             </div>
         </div>
@@ -331,7 +252,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form action="<?= $base_url ?>/tasks/delete/<?= $task['id'] ?>" method="POST" style="display: inline;">
-                    <input type="hidden" name="_method" value="DELETE">
                     <button type="submit" class="btn btn-danger">Delete Task</button>
                 </form>
             </div>
@@ -378,6 +298,24 @@
                 replyTrigger.classList.remove('d-none');
             });
         });
+
+        // Initialize delete button modal trigger
+        const deleteButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#deleteTaskModal"]');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
+                modal.show();
+            });
+        });
+
+        // Handle form submission
+        const deleteForm = document.querySelector('#deleteTaskModal form');
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(e) {
+                // Form will submit normally
+                console.log('Delete form submitted');
+            });
+        }
     });
 </script>
 

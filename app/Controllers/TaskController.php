@@ -165,11 +165,17 @@ class TaskController {
             $taskHierarchy = $this->taskModel->getTaskHierarchy($id);
             $uploads = $this->uploadModel->getUploadsByTaskId($id);
             $assignment = $this->taskAssignmentModel->getTaskAssignment($id);
+            
+            // Initialize the comment model
+            require_once __DIR__ . '/../Models/Comment.php';
+            $commentModel = new Comment($this->pdo);
 
             require_once __DIR__ . '/../Views/tasks/view.php';
         } catch (Exception $e) {
             $this->logger->error('Error viewing task', ['error' => $e->getMessage()]);
-            require_once __DIR__ . '/../Views/errors/task_error.php';
+            $_SESSION['error'] = 'Error viewing task: ' . $e->getMessage();
+            header('Location: /dashboard');
+            exit;
         }
     }
 
@@ -267,14 +273,9 @@ class TaskController {
             if (!$task) {
                 throw new Exception('Task not found');
             }
-
-            // Begin transaction
-            $this->pdo->beginTransaction();
             
-            // Delete the task (cascading will handle related records)
+            // Delete the task (transaction is handled in the model)
             $this->taskModel->deleteTask($id);
-            
-            $this->pdo->commit();
             
             $this->logger->info('Task deleted', ['task_id' => $id]);
             $_SESSION['success'] = 'Task deleted successfully';
@@ -284,9 +285,6 @@ class TaskController {
             exit;
             
         } catch (Exception $e) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
             $this->logger->error('Error deleting task', ['error' => $e->getMessage()]);
             $_SESSION['error'] = 'Error deleting task: ' . $e->getMessage();
             header('Location: ' . $_SERVER['HTTP_REFERER']);
