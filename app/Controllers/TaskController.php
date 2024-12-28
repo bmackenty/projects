@@ -40,6 +40,7 @@ class TaskController {
         $status = $_POST['status'] ?? 'pending';
         $time = $_POST['time'] ?? 0;
         $parent_task_id = !empty($_POST['parent_task_id']) ? $_POST['parent_task_id'] : null;
+        $due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
 
         if (empty($name) || empty($description)) {
             throw new Exception('Name and description are required');
@@ -47,7 +48,7 @@ class TaskController {
 
         try {
             $this->pdo->beginTransaction();
-            $task_id = $this->taskModel->createTask($name, $description, $status, $time, $parent_task_id);
+            $task_id = $this->taskModel->createTask($name, $description, $status, $time, $parent_task_id, $due_date);
             $this->taskModel->assignTaskToProject($task_id, $project_id);
             $this->pdo->commit();
             return true;
@@ -76,9 +77,10 @@ class TaskController {
             $status = $_POST['status'] ?? 'pending';
             $time = $_POST['time'] ?? 0;
             $parent_task_id = !empty($_POST['parent_task_id']) ? $_POST['parent_task_id'] : null;
+            $due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
     
             try {
-                $this->taskModel->updateTask($id, $name, $description, $status, $time, $parent_task_id);
+                $this->taskModel->updateTask($id, $name, $description, $status, $time, $parent_task_id, $due_date);
                 $this->logger->info('Task updated', ['id' => $id]);
                 $_SESSION['success'] = 'Task updated successfully';
                 header('Location: /projects');

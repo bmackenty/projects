@@ -24,6 +24,7 @@ CREATE TABLE tasks (
     status ENUM('pending', 'in_progress', 'completed') DEFAULT 'pending',
     time DECIMAL(10,2) DEFAULT 0.00,
     parent_task_id INT NULL,
+    due_date DATE NULL,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );

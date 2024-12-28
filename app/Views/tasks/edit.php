@@ -58,6 +58,12 @@
                                    value="<?= htmlspecialchars($task['time']) ?>" step="0.5" min="0" required>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="due_date" class="form-label">Due Date (Optional)</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date" 
+                                   value="<?= $task['due_date'] ? htmlspecialchars($task['due_date']) : '' ?>">
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary">Update Task</button>
                             <a href="<?= $base_url ?>/projects" class="btn btn-secondary">Cancel</a>

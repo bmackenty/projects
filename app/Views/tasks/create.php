@@ -51,6 +51,11 @@
                             <input type="number" class="form-control" id="time" name="time" step="0.5" min="0" value="0" required>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="due_date" class="form-label">Due Date (Optional)</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date">
+                        </div>
+
                         <div class="d-flex justify-content-between">
                             <button type="submit" class="btn btn-primary">Create Task</button>
                             <a href="/projects" class="btn btn-secondary">Cancel</a>

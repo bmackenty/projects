@@ -39,6 +39,7 @@
                     <th>Status</th>
                     <th>Time Spent</th>
                     <th>Last Updated</th>
+                    <th>Due Date</th>
                     <?php if ($_SESSION['user']['role'] === 'admin'): ?>
                         <th>Actions</th>
                     <?php endif; ?>
@@ -78,6 +79,19 @@
                             </td>
                             <td><?= $task['time'] ?> hours</td>
                             <td><?= $task['last_updated'] ?></td>
+                            <td>
+                                <?php if ($task['due_date']): ?>
+                                    <?= htmlspecialchars($task['due_date']) ?>
+                                    <?php 
+                                    $due_date = new DateTime($task['due_date']);
+                                    $today = new DateTime();
+                                    if ($today > $due_date && $task['status'] !== 'completed'): ?>
+                                        <span class="badge bg-danger">Overdue</span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
                             <?php if ($_SESSION['user']['role'] === 'admin'): ?>
                                 <td>
                                     <a href="<?= $base_url ?>/tasks/edit/<?= $task['id'] ?>" 

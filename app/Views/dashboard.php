@@ -66,6 +66,33 @@
         </div>
     </div>
 
+    <?php
+    // Add the new due date statistics here
+    $overdueTasks = 0;
+    $upcomingTasks = 0;
+    $noDateTasks = 0;
+    $today = new DateTime();
+
+    foreach ($projects as $project) {
+        if (isset($projectTasks[$project['id']])) {
+            foreach ($projectTasks[$project['id']] as $task) {
+                if ($task['status'] !== 'completed') {  // Only count non-completed tasks
+                    if (!$task['due_date']) {
+                        $noDateTasks++;
+                    } else {
+                        $dueDate = new DateTime($task['due_date']);
+                        if ($today > $dueDate) {
+                            $overdueTasks++;
+                        } else {
+                            $upcomingTasks++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    ?>
+
     <!-- Task Status Distribution -->
     <div class="row mb-4">
         <div class="col-md-6">
@@ -78,6 +105,20 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Due Date Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dueDateChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Timeline -->
+    <div class="row mb-4">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
@@ -138,6 +179,71 @@
                             <p class="text-muted">No tasks yet</p>
                         <?php endif; ?>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Task Due Dates Overview</h5>
+                </div>
+                <div class="card-body">
+                    <?php
+                    $upcomingDeadlines = [];
+                    foreach ($projectTasks as $project_id => $tasks) {
+                        foreach ($tasks as $task) {
+                            if ($task['due_date'] && $task['status'] !== 'completed') {
+                                $dueDate = new DateTime($task['due_date']);
+                                $today = new DateTime();
+                                $interval = $today->diff($dueDate);
+                                $daysUntilDue = $interval->days * ($interval->invert ? -1 : 1);
+                                
+                                if ($daysUntilDue >= -7 && $daysUntilDue <= 14) { // Show tasks due within 2 weeks or overdue up to a week
+                                    $upcomingDeadlines[] = [
+                                        'task' => $task,
+                                        'project_id' => $project_id,
+                                        'days' => $daysUntilDue
+                                    ];
+                                }
+                            }
+                        }
+                    }
+
+                    // Sort by due date
+                    usort($upcomingDeadlines, function($a, $b) {
+                        return $a['days'] - $b['days'];
+                    });
+
+                    if (!empty($upcomingDeadlines)): ?>
+                        <div class="list-group list-group-flush">
+                            <?php foreach (array_slice($upcomingDeadlines, 0, 5) as $deadline): ?>
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            <a href="<?= $base_url ?>/tasks/view/<?= $deadline['task']['id'] ?>" 
+                                               class="text-decoration-none">
+                                                <?= htmlspecialchars($deadline['task']['name']) ?>
+                                            </a>
+                                        </h6>
+                                        <?php if ($deadline['days'] < 0): ?>
+                                            <span class="badge bg-danger">Overdue by <?= abs($deadline['days']) ?> days</span>
+                                        <?php elseif ($deadline['days'] == 0): ?>
+                                            <span class="badge bg-warning">Due today</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-info">Due in <?= $deadline['days'] ?> days</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <small class="text-muted">
+                                        in <a href="<?= $base_url ?>/projects/view/<?= $deadline['project_id'] ?>" class="text-muted">
+                                            <?= htmlspecialchars($projects[array_search($deadline['project_id'], array_column($projects, 'id'))]['name']) ?>
+                                        </a>
+                                    </small>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-muted mb-0">No upcoming deadlines</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -225,6 +331,39 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Due Date Distribution Chart
+    const dueDateCtx = document.getElementById('dueDateChart').getContext('2d');
+    new Chart(dueDateCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Overdue', 'Upcoming', 'No Due Date'],
+            datasets: [{
+                data: [<?= $overdueTasks ?>, <?= $upcomingTasks ?>, <?= $noDateTasks ?>],
+                backgroundColor: ['#dc3545', '#0dcaf0', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            let value = context.raw || 0;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
                 }
             }
         }

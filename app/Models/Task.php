@@ -31,23 +31,23 @@ class Task {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function createTask($name, $description, $status, $time, $parent_task_id = null) {
+    public function createTask($name, $description, $status, $time, $parent_task_id = null, $due_date = null) {
         $stmt = $this->pdo->prepare('
-            INSERT INTO tasks (name, description, status, time, parent_task_id)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO tasks (name, description, status, time, parent_task_id, due_date)
+            VALUES (?, ?, ?, ?, ?, ?)
         ');
         
-        $stmt->execute([$name, $description, $status, $time, $parent_task_id]);
+        $stmt->execute([$name, $description, $status, $time, $parent_task_id, $due_date]);
         return $this->pdo->lastInsertId();
     }
 
-    public function updateTask($id, $name, $description, $status, $time, $parent_task_id = null) {
+    public function updateTask($id, $name, $description, $status, $time, $parent_task_id = null, $due_date = null) {
         $stmt = $this->pdo->prepare('
             UPDATE tasks 
-            SET name = ?, description = ?, status = ?, time = ?, parent_task_id = ?, last_updated = NOW() 
+            SET name = ?, description = ?, status = ?, time = ?, parent_task_id = ?, due_date = ?, last_updated = NOW() 
             WHERE id = ?
         ');
-        return $stmt->execute([$name, $description, $status, $time, $parent_task_id, $id]);
+        return $stmt->execute([$name, $description, $status, $time, $parent_task_id, $due_date, $id]);
     }
 
     public function assignTaskToProject($task_id, $project_id) {

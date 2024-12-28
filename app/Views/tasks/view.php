@@ -106,6 +106,22 @@
                             <h6 class="text-muted mb-1">Last Updated</h6>
                             <p class="mb-0"><?= TimeHelper::getRelativeTime($task['last_updated']) ?></p>
                         </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-1">Due Date</h6>
+                            <p class="mb-0">
+                                <?php if ($task['due_date']): ?>
+                                    <?= htmlspecialchars($task['due_date']) ?>
+                                    <?php 
+                                    $due_date = new DateTime($task['due_date']);
+                                    $today = new DateTime();
+                                    if ($today > $due_date && $task['status'] !== 'completed'): ?>
+                                        <span class="badge bg-danger">Overdue</span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="text-muted">Not set</span>
+                                <?php endif; ?>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
