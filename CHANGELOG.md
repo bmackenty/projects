@@ -19,3 +19,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Changed
 - N/A (Initial release).
+
+## [1.0.1] - 2024-12-30
+
+### Fixed
+- Task assignments not writing to database due to missing transaction handling and validation
+- Comments display issues in task view
+- Multiple session start warnings in header
+
+### Added
+- Improved error logging for task assignments
+- Better user feedback for comment sections
+- Dynamic "Be the first to comment" button when no comments exist
+- Threaded comments support with reply functionality
+- Automatic display of existing comments without requiring click
+
+### Changed
+- Comments now show by default when they exist
+- Session handling improved with new SessionHelper class
+- Task assignment process now validates both task and user existence
