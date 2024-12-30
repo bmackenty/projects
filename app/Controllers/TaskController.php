@@ -65,15 +65,25 @@ class TaskController {
             
             // Assign to user if specified
             if ($assigned_user) {
-                $this->taskAssignmentModel->assignTask($task_id, $assigned_user);
+                $assignment_success = $this->taskAssignmentModel->assignTask($task_id, $assigned_user);
+                if (!$assignment_success) {
+                    throw new Exception('Failed to assign task to user');
+                }
+                $this->logger->info('Task assigned to user', [
+                    'task_id' => $task_id,
+                    'user_id' => $assigned_user
+                ]);
             }
             
             $this->pdo->commit();
+            $_SESSION['success'] = 'Task created and assigned successfully';
             return true;
         } catch (Exception $e) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
+            $this->logger->error('Error creating/assigning task', ['error' => $e->getMessage()]);
+            $_SESSION['error'] = 'Error: ' . $e->getMessage();
             throw $e;
         }
     }
@@ -93,30 +103,79 @@ class TaskController {
         $assignment = $this->taskAssignmentModel->getTaskAssignment($id);
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->logger->info('Processing task edit POST request', [
+                'task_id' => $id,
+                'post_data' => $_POST
+            ]);
+
             $name = $_POST['name'] ?? '';
             $description = $_POST['description'] ?? '';
             $status = $_POST['status'] ?? 'pending';
             $time = $_POST['time'] ?? 0;
             $parent_task_id = !empty($_POST['parent_task_id']) ? $_POST['parent_task_id'] : null;
             $due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
-    
-            try {
-                $this->taskModel->updateTask($id, $name, $description, $status, $time, $parent_task_id, $due_date);
-                $this->logger->info('Task updated', ['id' => $id]);
-                $_SESSION['success'] = 'Task updated successfully';
-                header('Location: /projects');
-                exit;
-            } catch (PDOException $e) {
-                $this->logger->error('Error updating task', ['error' => $e->getMessage()]);
-                $_SESSION['error'] = 'Error updating task: ' . $e->getMessage();
-            }
-
-            // Handle assignment
             $assigned_user = !empty($_POST['assigned_user']) ? $_POST['assigned_user'] : null;
-            if ($assigned_user) {
-                $this->taskAssignmentModel->assignTask($id, $assigned_user);
-            } else {
-                $this->taskAssignmentModel->unassignTask($id);
+
+            try {
+                $this->pdo->beginTransaction();
+
+                // Update task details
+                $taskUpdateSuccess = $this->taskModel->updateTask(
+                    $id, $name, $description, $status, $time, $parent_task_id, $due_date
+                );
+                
+                $this->logger->info('Task update attempt', [
+                    'task_id' => $id,
+                    'success' => $taskUpdateSuccess
+                ]);
+
+                // Handle assignment
+                if ($assigned_user) {
+                    $this->logger->info('Attempting to assign task', [
+                        'task_id' => $id,
+                        'user_id' => $assigned_user
+                    ]);
+                    
+                    $assignmentSuccess = $this->taskAssignmentModel->assignTask($id, $assigned_user);
+                    
+                    $this->logger->info('Task assignment attempt result', [
+                        'task_id' => $id,
+                        'user_id' => $assigned_user,
+                        'success' => $assignmentSuccess
+                    ]);
+
+                    if (!$assignmentSuccess) {
+                        throw new Exception('Failed to assign task to user');
+                    }
+                } else {
+                    $this->logger->info('Attempting to unassign task', ['task_id' => $id]);
+                    $this->taskAssignmentModel->unassignTask($id);
+                }
+
+                $this->pdo->commit();
+                $_SESSION['success'] = 'Task updated successfully';
+                
+                $this->logger->info('Task edit completed successfully', [
+                    'task_id' => $id,
+                    'assigned_user' => $assigned_user
+                ]);
+
+                header('Location: /tasks/view/' . $id);
+                exit;
+            } catch (Exception $e) {
+                if ($this->pdo->inTransaction()) {
+                    $this->pdo->rollBack();
+                }
+                $this->logger->error('Error in task edit', [
+                    'task_id' => $id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                $_SESSION['error'] = 'Error updating task: ' . $e->getMessage();
+                
+                // Redirect back to edit page on error
+                header('Location: /tasks/edit/' . $id);
+                exit;
             }
         }
         

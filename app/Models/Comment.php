@@ -9,7 +9,7 @@ class Comment {
 
     public function getCommentsByTaskId($task_id) {
         $stmt = $this->pdo->prepare('
-            SELECT c.*, u.email as user_email 
+            SELECT c.*, u.name as user_name, u.email as user_email 
             FROM comments c 
             JOIN users u ON c.user_id = u.id 
             WHERE c.task_id = ? AND c.parent_id IS NULL
@@ -28,7 +28,7 @@ class Comment {
 
     public function getRepliesByCommentId($comment_id) {
         $stmt = $this->pdo->prepare('
-            SELECT c.*, u.email as user_email 
+            SELECT c.*, u.name as user_name, u.email as user_email 
             FROM comments c 
             JOIN users u ON c.user_id = u.id 
             WHERE c.parent_id = ?

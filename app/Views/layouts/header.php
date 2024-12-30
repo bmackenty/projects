@@ -1,7 +1,8 @@
-<?php 
-    session_start(); 
-    $base_url = "https://" . $_SERVER['HTTP_HOST'];
-    require_once __DIR__ . '/../../Helpers/TimeHelper.php';  
+<?php
+require_once __DIR__ . '/../../Helpers/SessionHelper.php';
+SessionHelper::start();
+$base_url = "https://" . $_SERVER['HTTP_HOST'];
+require_once __DIR__ . '/../../Helpers/TimeHelper.php';  
 
 // Debug the path resolution
 $config_path = __DIR__ . '/../../../config/database.php';

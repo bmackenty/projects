@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/../Helpers/SessionHelper.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../Models/Project.php';
 require_once __DIR__ . '/../Services/Logger.php';
@@ -15,6 +15,7 @@ class ProjectController {
     private $logger;
 
     public function __construct() {
+        SessionHelper::start();
         global $pdo;
         $this->projectModel = new Project($pdo);
         $this->taskModel = new Task($pdo); 
