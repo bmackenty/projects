@@ -164,6 +164,16 @@ require_once __DIR__ . '/../layouts/header.php';
                     <h5 class="mb-0">Attachments</h5>
                 </div>
                 <div class="card-body">
+                    <?php if (isset($_SESSION['error'])): ?>
+                        <div class="alert alert-danger mb-3">
+                            <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (isset($_SESSION['success'])): ?>
+                        <div class="alert alert-success mb-3">
+                            <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+                        </div>
+                    <?php endif; ?>
                     <?php if (isset($_SESSION['user'])): ?>
                         <form action="<?= $base_url ?>/tasks/<?= $task['id'] ?>/upload" method="POST"
                             enctype="multipart/form-data" class="mb-3">

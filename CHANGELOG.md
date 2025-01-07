@@ -38,3 +38,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Comments now show by default when they exist
 - Session handling improved with new SessionHelper class
 - Task assignment process now validates both task and user existence
+
+## [1.0.2] - 2024-01-02
+
+### Fixed
+- File upload error messages now display correctly on task view page
+- Upload directory permissions issue causing "Failed to move uploaded file" errors
+- Added proper error handling and display for file upload failures
+
+### Changed
+- Upload directory now creates with correct 755 permissions instead of 777
+- Improved error messaging for file upload failures
+- Added additional validation for upload directory write permissions
